@@ -3,18 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\models;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class ModelsController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index():View
     {
         //
-        $models = models::all();
-        return response()->json($models);
+        return view("models.index");
     }
 
     /**
@@ -28,9 +29,19 @@ class ModelsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request):RedirectResponse
     {
         //
+
+        $validated= $request->validate([
+            "model_name" => "required|string|max:255"
+        ]);
+
+        models::create([
+            "model_name" => $validated["model_name"]
+        ]);
+
+        return redirect(route("models.index"));
     }
 
     /**

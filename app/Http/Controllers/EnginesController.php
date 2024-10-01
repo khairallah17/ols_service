@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\engines;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class EnginesController extends Controller
@@ -15,6 +16,10 @@ class EnginesController extends Controller
 
         return response()->json($engines);
 
+    }
+
+    public function store(): RedirectResponse{
+        return redirect(route("engines.index"));
     }
 
 }

@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\categories;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 
 class CategoriesController extends Controller
 {
@@ -11,12 +14,10 @@ class CategoriesController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index():View
     {
         //
-        $categories = categories::all();
-
-        return response()->json($categories);
+        return view("categories.index");
     }
 
     /**
@@ -30,9 +31,15 @@ class CategoriesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request):RedirectResponse
     {
         //
+        // echo $request;
+        $validated = $request->validate([
+            "category_name" => "required|string|max:255"
+        ]);
+        categories::create(["category_name"=>$validated["category_name"]]);
+        return redirect(route("categories.index"));
     }
 
     /**

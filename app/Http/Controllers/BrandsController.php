@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\brands;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class BrandsController extends Controller
 {
@@ -11,11 +13,10 @@ class BrandsController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index():View
     {
         //
-        $brands = brands::all();
-        return response()->json($brands);
+        return view("brands.index");
     }
 
     /**
@@ -29,9 +30,19 @@ class BrandsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request):RedirectResponse
     {
         //
+
+        $validated = $request->validate([
+            "brand_name" => "required|string|max:255"
+        ]);
+
+        brands::create([
+            "brand_name" => $validated["brand_name"]
+        ]);
+
+        return redirect(route("brands.index"));
     }
 
     /**

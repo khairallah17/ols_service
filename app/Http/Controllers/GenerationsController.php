@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use App\Models\generations;
+use Illuminate\View\View;
 
 class GenerationsController extends Controller
 {
@@ -11,11 +13,10 @@ class GenerationsController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index():View
     {
         //
-        $generations = generations::all();
-        return response()->json($generations);
+        return view("generations.index");
     }
 
     /**
@@ -29,9 +30,19 @@ class GenerationsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request):RedirectResponse
     {
         //
+
+        $validated = $request->validate([
+            "generation_name" => "required|string|max:255"
+        ]);
+
+        generations::create([
+            "generation_name" => $validated["generation_name"]
+        ]);
+
+        return redirect(route("generations.index"));
     }
 
     /**

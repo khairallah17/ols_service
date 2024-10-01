@@ -19,33 +19,33 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/vehicles', [VehiclesController::class, "index"]);
+// Route::get('/vehicles', [VehiclesController::class, "index"]);
 
-Route::get("/categories", [CategoriesController::class,"index"]);
+Route::resource("categories", CategoriesController::class)->only(["index","store"]);
 
-Route::get("/models", [ModelsController::class,"index"]);
+Route::resource("models", ModelsController::class)->only(["index","store"]);
 
-Route::get("/brands", [BrandsController::class,"index"]);
+Route::resource("brands", BrandsController::class)->only(["index", "store"]);
 
-Route::get("/generations", [GenerationsController::class,"index"]);
+Route::resource("generations", GenerationsController::class)->only(["index", "store"]);
 
-Route::get("/engines", [EnginesController::class,"index"]);
+Route::resource("engines", EnginesController::class)->only(["index", "store"]);
 
-Route::get("/vehicle_chart", [VehicleDataChartController::class,"index"]);
+Route::resource("vehicle_chart", VehicleDataChartController::class)->only(["index", "store"]);
 
-Route::get('/', function () {
+// Route::get('/', function () {
     
-    $categories = categories::all();
-    $brands = brands::all();
-    $models = models::all();
-    $ecus = ecus::all();
-    $engines = engines::all();
+//     $categories = categories::all();
+//     $brands = brands::all();
+//     $models = models::all();
+//     $ecus = ecus::all();
+//     $engines = engines::all();
 
-    return view('welcome', [
-        "categories" => $categories,
-        "brands" => $brands,
-        "models" => $models,
-        "ecus" => $ecus,
-        "engines" => $engines
-    ]);
-});
+//     return view('welcome', [
+//         "categories" => $categories,
+//         "brands" => $brands,
+//         "models" => $models,
+//         "ecus" => $ecus,
+//         "engines" => $engines
+//     ]);
+// });
