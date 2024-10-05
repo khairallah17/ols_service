@@ -16,23 +16,33 @@ class vehiclesSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     */
+*/
     public function run(): void
     {
         //
-        $faker = Faker::create();
-        $fakeCar = new FakeCar($faker);
-        $faker->addProvider($fakeCar);
+        $vehicles = [
+            [
+                'vehicle_name' => "Abarth 595C 1.4T-Jet - 165-BHP - 123-KW",
+                'vehicle_fuel' => "Petrol",
+                'vehicle_standard_power' => 165,
+                'vehicle_standard_torque' => 230,
+                'vehicle_cylinder' => "1984 CC",
+                'vehicle_compression' => "9,8 : 1",
+                'vehicle_bore' => "82,5 X 92,8 mm",
+        
+                "category_id" => 3,
+                "brand_id" => 32,
+                "model_id" => 104,
+                "generation_id" => 4,
+                "engine_id" => 853,
+                "ecu_id" => 200,
+                "characteristic_id" => 1,
+                "data_chart_id" => 2
+            ],
+        ];
 
-        DB::table('vehicles')->insert([
-            "vehicle_name" => $faker->vehicle(),
-            "vehicle_fuel" => $faker->vehicleFuelType(),
-            "vehicle_standard_power" => $faker->randomDigit(),
-            "vehicle_standard_torque" => $faker->randomDigit(),
-            "vehicle_cylinder" => Str::random(10),
-            "vehicle_compression" => Str::random(10),
-            "vehicle_bore" => Str::random(10),
-            "category_id" => $faker->numberBetween(3, 7),
-        ]);
+        foreach($vehicles as $vehicle) {
+            vehicles::create($vehicle);
+        }
     }
 }

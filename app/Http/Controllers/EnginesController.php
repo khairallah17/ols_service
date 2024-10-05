@@ -22,4 +22,14 @@ class EnginesController extends Controller
         return redirect(route("engines.index"));
     }
 
+    public function search(Request $request) {
+
+        $data = $request->header("engine_name");
+
+        $res = engines::where("engine_name", $data)->first();
+
+        return response()->json($res);
+
+    }
+
 }

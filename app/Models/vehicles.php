@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\categories;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class vehicles extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
 
-    protected $primaryKey = 'vehicle_id';  // Define the primary key
+    protected $primaryKey = 'id';  // Define the primary key
 
     protected $fillable = [
         'vehicle_name',
@@ -34,35 +35,35 @@ class vehicles extends Model
     ];
 
     public function category(): BelongsTo {
-        return $this->belongsTo(categories::class);
+        return $this->belongsTo(categories::class, "category_id");
     }
 
     public function model(): BelongsTo {
-        return $this->belongsTo(models::class);
+        return $this->belongsTo(models::class, "model_id");
     }
 
     public function brand(): BelongsTo {
-        return $this->belongsTo(brands::class);
+        return $this->belongsTo(brands::class, "brand_id");
     }
 
     public function generation(): BelongsTo{
-        return $this->belongsTo(generations::class);
+        return $this->belongsTo(generations::class, "generation_id");
     }
 
     public function engine(): BelongsTo {
-        return $this->belongsTo(engines::class);
+        return $this->belongsTo(engines::class, "engine_id");
     }
 
-    public function ecu() {
-        return $this->belongsTo(ecus::class);
+    public function ecu(): BelongsTo {
+        return $this->belongsTo(ecus::class, "ecu_id");
     }
 
-    public function characteristic() {
-        return $this->belongs(vehicles_characteristics::class);
+    public function characteristic(): BelongsTo {
+        return $this->belongsTo(vehicles_characteristics::class,"vehicle_characteristic_id");
     }
 
-    public function data_chart() {
-        return $this->hasOne(vehicle_data_chart::class);
+    public function data_chart(): HasOne {
+        return $this->hasOne(vehicle_chart_data::class, "vehicle_data_id");
     }
 
 }
