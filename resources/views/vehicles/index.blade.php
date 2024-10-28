@@ -14,7 +14,7 @@
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     </head>
-    <body class="font-sans antialiased container mx-auto mt-10">
+    <body class="font-sans antialiased container mx-auto my-10">
 
         <a href="/" class="underline text-blue-500 mb-6">Home</a>
 
@@ -155,7 +155,7 @@
                 <!-- AVAILABLE VEHICLES -->
                 <div class="mt-10">
                     <h2 class="text-lg font-bold">Available Vehicles</h2>
-                    <ul>
+                    <ul class="h-96 overflow-scroll">
                         @foreach ($vehicles as $vehicle)
                         <li class="border-b py-2">
                             <a href="#" data-id="{{ $vehicle->id }}" class="vehicle-link text-blue-600 hover:text-blue-800">
@@ -213,14 +213,6 @@
                     </div>
 
                     <div class="flex flex-col gap-1">
-                        <!-- Generation -->
-                        <label for="vehicle_generation">Vehicle Generation</label>
-                        <select id="vehicle_generation" class="border rounded-sm px-2 w-[200px]" disabled>
-                            <option value="">Select Generation</option>
-                        </select>
-                    </div>
-
-                    <div class="flex flex-col gap-1">
                         <!-- Engine -->
                         <label for="vehicle_engine">Vehicle Engine</label>
                         <select id="vehicle_engine" class="border rounded-sm px-2 w-[200px]" disabled>
@@ -242,9 +234,15 @@
 
                 </div>
 
+                <div>
+                    <canvas id="myChart"></canvas>
+                </div>
+
 
 
         </main>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
         <script>
 
@@ -343,47 +341,19 @@
                         }
                     });
 
-                    // Fetch generations based on selected model
+                    // Fetch engines based on selected model
                     $('#vehicle_model').on('change', function() {
                         let modelId = $(this).val();
                         
-                        resetSelectField('#vehicle_generation');
                         resetSelectField('#vehicle_engine');
                         resetSelectField('#vehicle_ecu');
                         $('#vehicle_details').empty(); // Clear previous vehicle details
                         
                         if (modelId) {
                             $.ajax({
-                                url: "{{ route('vehicle.generations') }}",
-                                type: 'GET',
-                                data: { model_id: modelId },
-                                success: function(response) {
-                                    let options = '<option value="">Select Generation</option>';
-                                    response.forEach(function(generation) {
-                                        options += `<option value="${generation.generation_id}">${generation.generation_name}</option>`;
-                                    });
-                                    $('#vehicle_generation').html(options).removeAttr('disabled');
-                                },
-                                error: function(err) {
-                                    console.error("Error fetching generations", err);
-                                }
-                            });
-                        }
-                    });
-
-                    // Fetch engines based on selected generation
-                    $('#vehicle_generation').on('change', function() {
-                        let generationId = $(this).val();
-                        
-                        resetSelectField('#vehicle_engine');
-                        resetSelectField('#vehicle_ecu');
-                        $('#vehicle_details').empty(); // Clear previous vehicle details
-                        
-                        if (generationId) {
-                            $.ajax({
                                 url: "{{ route('vehicle.engines') }}",
                                 type: 'GET',
-                                data: { generation_id: generationId },
+                                data: { model_id: modelId },
                                 success: function(response) {
                                     let options = '<option value="">Select Engine</option>';
                                     response.forEach(function(engine) {
@@ -429,7 +399,6 @@
                         let vehicleName = $('#vehicle_name').val();
                         let brandId = $('#vehicle_brand').val();
                         let modelId = $('#vehicle_model').val();
-                        let generationId = $('#vehicle_generation').val();
                         let engineId = $('#vehicle_engine').val();
                         let ecuId = $(this).val();
                         
@@ -441,11 +410,11 @@
                                     vehicle_name: vehicleName,
                                     brand_id: brandId,
                                     model_id: modelId,
-                                    generation_id: generationId,
                                     engine_id: engineId,
                                     ecu_id: ecuId
                                 },
                                 success: function(response) {
+                                    console.log(response)
                                     displayVehicleDetails(response);
                                 },
                                 error: function(err) {
@@ -460,19 +429,69 @@
                         $(selector).html('<option value="">Select</option>').attr('disabled', 'disabled');
                     }
 
+                    let rpm = []
+                    let power= []
+                    let torque = []
+
                     // Function to display vehicle details
                     function displayVehicleDetails(vehicle) {
+                        let test = []
+                        console.log(vehicle.data_chart.vehicle_data_rpm.split(","))
+                        test = vehicle.data_chart.vehicle_data_rpm.split(",")
+                        for (let i = 0 ; i < test.length ; i++) {
+                            rpm.push(Number(test[i]))
+                        }
+                        test = vehicle.data_chart.vehicle_data_oem_power_chart.split(",")
+                        console.log("POWER ==> ", test)
+                        for (let i = 0 ; i < test.length ; i++) {
+                            power.push(Number(test[i]))
+                        }
+                        test = vehicle.data_chart.vehicle_data_oem_torque_chart.split(",")
+                        console.log("TORQUE ==> ", torque)
+                        for (let i = 0 ; i < test.length ; i++) {
+                            torque.push(Number(test[i]))
+                        }
                         let vehicleDetailsHtml = `
                             <h3>Vehicle Details</h3>
                             <p><strong>Name:</strong> ${vehicle.vehicle_name}</p>
                             <p><strong>Brand:</strong> ${vehicle.brand.brand_name}</p>
                             <p><strong>Model:</strong> ${vehicle.model.model_name}</p>
-                            <p><strong>Generation:</strong> ${vehicle.generation.generation_name}</p>
                             <p><strong>Engine:</strong> ${vehicle.engine.engine_name}</p>
                             <p><strong>ECU:</strong> ${vehicle.ecu.ecu_name}</p>
                         `;
+
+                        const ctx = document.getElementById('myChart');
+
+                        console.log(rpm, power, torque)
+
+                        const data = {
+                        labels: rpm,
+                        datasets: [
+                            {
+                                label: 'My First Dataset',
+                                data: power,
+                                fill: false,
+                                borderColor: 'rgb(75, 192, 192)',
+                                tension: 0.1
+                            },
+                            {
+                                label: 'My First Dataset',
+                                data: torque,
+                                fill: false,
+                                borderColor: 'rgb(75, 192, 192)',
+                                tension: 0.1
+                            }
+                        ]};
+
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: data
+                        });
                         $('#vehicle_details').html(vehicleDetailsHtml).show();
                     }
+                
+                    
+                
                 });
 
 
