@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\categories;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Tuning;
 
 class vehicles extends Model
 {
@@ -30,8 +32,10 @@ class vehicles extends Model
         "generation_id",
         "engine_id",
         "ecu_id",
-        "characteristic_id",
-        "data_chart_id"
+        "data_chart_id",
+        "vehicle_tuning",
+        "vehicle_characteristic",
+        "vehicle_tuning_details"
     ];
 
     public function category(): BelongsTo {
@@ -58,12 +62,12 @@ class vehicles extends Model
         return $this->belongsTo(ecus::class, "ecu_id");
     }
 
-    public function characteristic(): BelongsTo {
-        return $this->belongsTo(vehicles_characteristics::class,"vehicle_characteristic_id");
-    }
-
     public function data_chart(): HasOne {
         return $this->hasOne(vehicle_chart_data::class, "vehicle_data_id");
+    }
+
+    public function vehicle_tuning(): HasOne {
+        return $this->hasOne(Tuning::class, "vehicle_tuning");
     }
 
 }

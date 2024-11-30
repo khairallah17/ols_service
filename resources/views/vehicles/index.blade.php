@@ -152,28 +152,6 @@
                     </form>
                 </div>
 
-                <!-- AVAILABLE VEHICLES -->
-                <div class="mt-10">
-                    <h2 class="text-lg font-bold">Available Vehicles</h2>
-                    <ul class="h-96 overflow-scroll">
-                        @foreach ($vehicles as $vehicle)
-                        <li class="border-b py-2">
-                            <a href="#" data-id="{{ $vehicle->id }}" class="vehicle-link text-blue-600 hover:text-blue-800">
-                                {{ $vehicle->vehicle_name }}
-                            </a>
-                        </li>
-                        @endforeach
-                    </ul>
-                    <!-- Vehicle Details -->
-                    <div class="w-2/3">
-                        <h1 class="text-lg font-bold">Vehicle Details</h1>
-                        <div id="vehicle-details" class="p-4 border rounded">
-                            <!-- Details will be dynamically loaded here -->
-                            <p>Select a vehicle to view its details.</p>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- SEARCH VEHICLE -->
                 <div class="flex flex-wrap gap-4 mt-10">
                     
@@ -248,6 +226,7 @@
 
                 $(document).ready(function () {
                     // Fetch vehicle names based on selected category
+                    let vehicle_details;
                     $('#vehicle_category').on('change', function() {
                         let categoryId = $(this).val();
                         
@@ -267,10 +246,10 @@
                                 type: 'GET',
                                 data: { category_id: categoryId },
                                 success: function(response) {
-                                    console.log(response)
+                                    vehicle_details = response
                                     let options = '<option value="">Select Vehicle Name</option>';
                                     response.forEach(function(vehicle) {
-                                        options += `<option value="${vehicle.vehicle_name}">${vehicle.vehicle_name}</option>`;
+                                        options += `<option value="${vehicle.id}">${vehicle.vehicle_name}</option>`;
                                     });
                                     $('#vehicle_name').html(options).removeAttr('disabled');
                                 },
@@ -326,11 +305,15 @@
                             $.ajax({
                                 url: "{{ route('vehicle.models') }}",
                                 type: 'GET',
-                                data: { brand_id: brandId },
+                                data: { brand_id: brandId, vehicle_id: vehicle_details.id },
                                 success: function(response) {
                                     let options = '<option value="">Select Model</option>';
                                     response.forEach(function(model) {
-                                        options += `<option value="${model.model_id}">${model.model_name}</option>`;
+                                        let vehicle_name = $("#vehicle_name").val()
+                                        console.log(response)
+                                        console.log("FETCHED VEHICLE NAME ==> ", vehicle_name)
+                                        if (vehicle_name.includes(model.model_name))
+                                            options += `<option value="${model.model_id}">${model.model_name}</option>`;
                                     });
                                     $('#vehicle_model').html(options).removeAttr('disabled');
                                 },
@@ -435,19 +418,19 @@
 
                     // Function to display vehicle details
                     function displayVehicleDetails(vehicle) {
+
+                        console.log("VEHICLE DETAILS => ", vehicle)
                         let test = []
-                        console.log(vehicle.data_chart.vehicle_data_rpm.split(","))
-                        test = vehicle.data_chart.vehicle_data_rpm.split(",")
+                        console.log(vehicle?.data_chart?.vehicle_data_rpm?.split(","))
+                        test = vehicle?.data_chart?.vehicle_data_rpm?.split(",") || []
                         for (let i = 0 ; i < test.length ; i++) {
                             rpm.push(Number(test[i]))
                         }
-                        test = vehicle.data_chart.vehicle_data_oem_power_chart.split(",")
-                        console.log("POWER ==> ", test)
+                        test = vehicle?.data_chart?.vehicle_data_oem_power_chart?.split(",") || []
                         for (let i = 0 ; i < test.length ; i++) {
                             power.push(Number(test[i]))
                         }
-                        test = vehicle.data_chart.vehicle_data_oem_torque_chart.split(",")
-                        console.log("TORQUE ==> ", torque)
+                        test = vehicle?.data_chart?.vehicle_data_oem_torque_chart?.split(",") || []
                         for (let i = 0 ; i < test.length ; i++) {
                             torque.push(Number(test[i]))
                         }
@@ -461,8 +444,6 @@
                         `;
 
                         const ctx = document.getElementById('myChart');
-
-                        console.log(rpm, power, torque)
 
                         const data = {
                         labels: rpm,
@@ -487,6 +468,7 @@
                             type: 'line',
                             data: data
                         });
+
                         $('#vehicle_details').html(vehicleDetailsHtml).show();
                     }
                 
