@@ -19,6 +19,10 @@ class BrandsController extends Controller
         return view("brands.index");
     }
 
+    public function getBrands() {
+        
+    }
+
     /**
      * Show the form for creating a new resource.
      */

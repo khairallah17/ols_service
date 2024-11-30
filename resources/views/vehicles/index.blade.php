@@ -167,14 +167,6 @@
                     </div>
 
                     <div class="flex flex-col gap-1">
-                        <!-- Vehicle Name -->
-                        <label for="vehicle_name">Vehicle Name</label>
-                        <select id="vehicle_name" class="border rounded-sm px-2 w-[200px]">
-                            <option value="">Select Vehicle Name</option>
-                        </select>
-                    </div>
-
-                    <div class="flex flex-col gap-1">
                         <!-- Brand -->
                         <label for="vehicle_brand">Vehicle Brand</label>
                         <select id="vehicle_brand" class="border rounded-sm px-2 w-[200px]" disabled>
@@ -189,6 +181,22 @@
                             <option value="">Select Model</option>
                         </select>
                     </div>
+
+                    <div class="flex flex-col gap-1">
+                        <!-- Generation -->
+                        <label for="vehicle_generation">Vehicle Generation</label>
+                        <select id="vehicle_generation" class="border rounded-sm px-2 w-[200px]" disabled>
+                            <option value="">Select Generation</option>
+                        </select>
+                    </div>
+
+                    <!-- <div class="flex flex-col gap-1"> -->
+                        <!-- Vehicle Name -->
+                        <!-- <label for="vehicle_name">Vehicle Name</label>
+                        <select id="vehicle_name" class="border rounded-sm px-2 w-[200px]">
+                            <option value="">Select Vehicle Name</option>
+                        </select>
+                    </div> -->
 
                     <div class="flex flex-col gap-1">
                         <!-- Engine -->
@@ -208,9 +216,10 @@
 
                     
                 </div>
-                <div id="vehicle_details">
+                
+                <div id="vehicle_details"></div>
 
-                </div>
+                <div id="vehicle_addition_options"></div>
 
                 <div>
                     <canvas id="myChart"></canvas>
@@ -226,10 +235,10 @@
 
                 $(document).ready(function () {
                     // Fetch vehicle names based on selected category
-                    let vehicle_details;
+                    let vehicle_details = {};
                     $('#vehicle_category').on('change', function() {
                         let categoryId = $(this).val();
-                        
+                        vehicle_details.category_id = categoryId
                         // Reset all the dependent select fields and disable them
                         resetSelectField('#vehicle_name');
                         resetSelectField('#vehicle_brand');
@@ -246,12 +255,11 @@
                                 type: 'GET',
                                 data: { category_id: categoryId },
                                 success: function(response) {
-                                    vehicle_details = response
-                                    let options = '<option value="">Select Vehicle Name</option>';
-                                    response.forEach(function(vehicle) {
-                                        options += `<option value="${vehicle.id}">${vehicle.vehicle_name}</option>`;
+                                    let options = '<option value="">Select Brand Name</option>';
+                                    response.forEach(function(brand) {
+                                        options += `<option value="${brand.brand_id}">${brand.brand_name}</option>`;
                                     });
-                                    $('#vehicle_name').html(options).removeAttr('disabled');
+                                    $('#vehicle_brand').html(options).removeAttr('disabled');
                                 },
                                 error: function(err) {
                                     console.error("Error fetching vehicle names", err);
@@ -260,41 +268,10 @@
                         }
                     });
 
-                    // Fetch brands based on selected vehicle name
-                    $('#vehicle_name').on('change', function() {
-                        let vehicleName = $(this).val();
-                        
-                        resetSelectField('#vehicle_brand');
-                        resetSelectField('#vehicle_model');
-                        resetSelectField('#vehicle_generation');
-                        resetSelectField('#vehicle_engine');
-                        resetSelectField('#vehicle_ecu');
-                        $('#vehicle_details').empty(); // Clear previous vehicle details
-                        
-                        if (vehicleName) {
-                            $.ajax({
-                                url: "{{ route('vehicle.brands') }}",
-                                type: 'GET',
-                                data: { vehicle_name: vehicleName },
-                                success: function(response) {
-                                    console.log(response)
-                                    let options = '<option value="">Select Brand</option>';
-                                    response.forEach(function(brand) {
-                                        options += `<option value="${brand.brand_id}">${brand.brand_name}</option>`;
-                                    });
-                                    $('#vehicle_brand').html(options).removeAttr('disabled');
-                                },
-                                error: function(err) {
-                                    console.error("Error fetching brands", err);
-                                }
-                            });
-                        }
-                    });
-
                     // Fetch models based on selected brand
                     $('#vehicle_brand').on('change', function() {
                         let brandId = $(this).val();
-                        
+                        vehicle_details.brand_id = brandId
                         resetSelectField('#vehicle_model');
                         resetSelectField('#vehicle_generation');
                         resetSelectField('#vehicle_engine');
@@ -305,15 +282,12 @@
                             $.ajax({
                                 url: "{{ route('vehicle.models') }}",
                                 type: 'GET',
-                                data: { brand_id: brandId, vehicle_id: vehicle_details.id },
+                                data: { brand_id: brandId},
                                 success: function(response) {
                                     let options = '<option value="">Select Model</option>';
                                     response.forEach(function(model) {
-                                        let vehicle_name = $("#vehicle_name").val()
-                                        console.log(response)
-                                        console.log("FETCHED VEHICLE NAME ==> ", vehicle_name)
-                                        if (vehicle_name.includes(model.model_name))
-                                            options += `<option value="${model.model_id}">${model.model_name}</option>`;
+                                        let vehicle_name = $("#vehicle_model").val()
+                                        options += `<option value="${model.model_id}">${model.model_name}</option>`;
                                     });
                                     $('#vehicle_model').html(options).removeAttr('disabled');
                                 },
@@ -327,22 +301,24 @@
                     // Fetch engines based on selected model
                     $('#vehicle_model').on('change', function() {
                         let modelId = $(this).val();
-                        
+                        vehicle_details.model_id = modelId
                         resetSelectField('#vehicle_engine');
                         resetSelectField('#vehicle_ecu');
                         $('#vehicle_details').empty(); // Clear previous vehicle details
                         
+                        console.log("fetching generation with => ", vehicle_details)
+
                         if (modelId) {
                             $.ajax({
-                                url: "{{ route('vehicle.engines') }}",
+                                url: "{{ route('vehicle.generations') }}",
                                 type: 'GET',
-                                data: { model_id: modelId },
+                                data: vehicle_details,
                                 success: function(response) {
-                                    let options = '<option value="">Select Engine</option>';
-                                    response.forEach(function(engine) {
-                                        options += `<option value="${engine.engine_id}">${engine.engine_name}</option>`;
+                                    let options = '<option value="">Select Generation</option>';
+                                    response.forEach(function(generation) {
+                                        options += `<option value="${generation.generation_id}">${generation.generation_name}</option>`;
                                     });
-                                    $('#vehicle_engine').html(options).removeAttr('disabled');
+                                    $('#vehicle_generation').html(options).removeAttr('disabled');
                                 },
                                 error: function(err) {
                                     console.error("Error fetching engines", err);
@@ -351,10 +327,39 @@
                         }
                     });
 
+                    $('#vehicle_generation').on('change', function () {
+
+                        let genId = $(this).val()
+                        vehicle_details.generation_id = genId
+                        resetSelectField('#vehicle_engine');
+                        resetSelectField('#vehicle_ecu');
+                        $('#vehicle_details').empty(); 
+                        console.log("FETCHING ENGINES WITH ==> ", vehicle_details)
+                        if (genId) {
+                            $.ajax({
+                                url: "{{ route('vehicle.engines') }}",
+                                type: "GET",
+                                data: vehicle_details,
+                                success: function (response) {
+                                    console.log("ENGINES DATA ==> ", response)
+                                    let options = '<option value="">Select Engine</option>';
+                                    response.forEach(function (engine) {
+                                        options += `<option value="${engine.engine_id}">${engine.engine_name}</option>`;
+                                    })
+                                    $("#vehicle_engine").html(options).removeAttr("disabled")
+                                },
+                                error: function (err) {
+                                    console.error("Error fetching engines", err)
+                                }
+                            })
+                        }
+
+                    })
+
                     // Fetch ECUs based on selected engine
                     $('#vehicle_engine').on('change', function() {
                         let engineId = $(this).val();
-                        
+                        vehicle_details.engine_id = engineId
                         resetSelectField('#vehicle_ecu');
                         $('#vehicle_details').empty(); // Clear previous vehicle details
                         
@@ -362,8 +367,9 @@
                             $.ajax({
                                 url: "{{ route('vehicle.ecus') }}",
                                 type: 'GET',
-                                data: { engine_id: engineId },
+                                data: vehicle_details,
                                 success: function(response) {
+                                    console.log("ECUS ==> ", response)
                                     let options = '<option value="">Select ECU</option>';
                                     response.forEach(function(ecu) {
                                         options += `<option value="${ecu.ecu_id}">${ecu.ecu_name}</option>`;
@@ -379,29 +385,21 @@
 
                     // Fetch full vehicle details based on selected ECU
                     $('#vehicle_ecu').on('change', function() {
-                        let vehicleName = $('#vehicle_name').val();
-                        let brandId = $('#vehicle_brand').val();
-                        let modelId = $('#vehicle_model').val();
-                        let engineId = $('#vehicle_engine').val();
                         let ecuId = $(this).val();
-                        
+                        vehicle_details.ecu_id = ecuId
+                        console.log(vehicle_details)
                         if (ecuId) {
                             $.ajax({
                                 url: "{{ route('vehicle.details') }}", // API route for fetching final vehicle details
                                 type: 'GET',
-                                data: {
-                                    vehicle_name: vehicleName,
-                                    brand_id: brandId,
-                                    model_id: modelId,
-                                    engine_id: engineId,
-                                    ecu_id: ecuId
-                                },
+                                data: vehicle_details,
                                 success: function(response) {
                                     console.log(response)
-                                    displayVehicleDetails(response);
+                                    displayVehicleDetails(response[0]);
+                                    displayAdditionalOptions(response[1])
                                 },
                                 error: function(err) {
-                                    console.error("Error fetching vehicle details", err);
+                                    console.error("Error fetching vehicle details", err.message);
                                 }
                             });
                         }
@@ -415,32 +413,48 @@
                     let rpm = []
                     let power= []
                     let torque = []
+                    let tuning_power = []
+                    let tuning_torque = []
 
                     // Function to display vehicle details
                     function displayVehicleDetails(vehicle) {
 
-                        console.log("VEHICLE DETAILS => ", vehicle)
                         let test = []
-                        console.log(vehicle?.data_chart?.vehicle_data_rpm?.split(","))
+                        
                         test = vehicle?.data_chart?.vehicle_data_rpm?.split(",") || []
                         for (let i = 0 ; i < test.length ; i++) {
                             rpm.push(Number(test[i]))
                         }
+
                         test = vehicle?.data_chart?.vehicle_data_oem_power_chart?.split(",") || []
                         for (let i = 0 ; i < test.length ; i++) {
                             power.push(Number(test[i]))
                         }
+
                         test = vehicle?.data_chart?.vehicle_data_oem_torque_chart?.split(",") || []
                         for (let i = 0 ; i < test.length ; i++) {
                             torque.push(Number(test[i]))
                         }
+
+                        test = vehicle?.vehicle_tuning?.vehicle_tuning_power_chart?.split(",") || []
+                        for (let i = 0 ; i < test.length ; i++) {
+                            tuning_power.push(Number(test[i]))
+                        }
+
+                        test = vehicle?.vehicle_tuning?.vehicle_tuning_torque_chart?.split(",") || []
+                        for (let i = 0 ; i < test.length ; i++) {
+                            tuning_torque.push(Number(test[i]))
+                        }
+
                         let vehicleDetailsHtml = `
-                            <h3>Vehicle Details</h3>
+                            <h3 class="text-lg font-bold text-red-500">Vehicle Details</h3>
                             <p><strong>Name:</strong> ${vehicle.vehicle_name}</p>
                             <p><strong>Brand:</strong> ${vehicle.brand.brand_name}</p>
                             <p><strong>Model:</strong> ${vehicle.model.model_name}</p>
+                            <p><strong>Generation:</strong> ${vehicle.generation.generation_name}</p>
                             <p><strong>Engine:</strong> ${vehicle.engine.engine_name}</p>
                             <p><strong>ECU:</strong> ${vehicle.ecu.ecu_name}</p>
+                            <p><strong>Tuning:</strong> ${vehicle.tuning.tuning_name}</p>
                         `;
 
                         const ctx = document.getElementById('myChart');
@@ -449,17 +463,31 @@
                         labels: rpm,
                         datasets: [
                             {
-                                label: 'My First Dataset',
+                                label: 'power',
                                 data: power,
                                 fill: false,
-                                borderColor: 'rgb(75, 192, 192)',
+                                borderColor: 'rgb(66, 135, 245)',
                                 tension: 0.1
                             },
                             {
-                                label: 'My First Dataset',
+                                label: 'Torque',
                                 data: torque,
                                 fill: false,
-                                borderColor: 'rgb(75, 192, 192)',
+                                borderColor: 'rgb(245, 127, 66)',
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Tuning Power',
+                                data: tuning_power,
+                                fill: false,
+                                borderColor: 'rgb(127, 199, 66)',
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Tuning Torque',
+                                data: tuning_torque,
+                                fill: false,
+                                borderColor: 'rgb(201, 66, 245)',
                                 tension: 0.1
                             }
                         ]};
@@ -472,7 +500,21 @@
                         $('#vehicle_details').html(vehicleDetailsHtml).show();
                     }
                 
-                    
+                    function displayAdditionalOptions(options) {
+
+                        let vehicleAdd = `
+                            <h3>Vehicle Addition Options</h3>
+                        `
+
+                        options.forEach(function(op) {
+                            vehicleAdd += `
+                                <p><strong>Name:</strong> ${op.characteristic_name}</p>
+                            `
+                        })
+
+                        $("#vehicle_addition_options").html(vehicleAdd).show()
+
+                    }
                 
                 });
 

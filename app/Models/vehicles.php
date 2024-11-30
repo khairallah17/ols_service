@@ -5,17 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\categories;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Tuning;
 
 class vehicles extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'id';  // Define the primary key
+    protected $primaryKey = 'id'; 
 
     protected $fillable = [
         'vehicle_name',
@@ -66,8 +64,12 @@ class vehicles extends Model
         return $this->hasOne(vehicle_chart_data::class, "vehicle_data_id");
     }
 
+    public function tuning(): HasOne {
+        return $this->hasOne(tuning::class, "tuning_id", "vehicle_tuning");
+    }
+
     public function vehicle_tuning(): HasOne {
-        return $this->hasOne(Tuning::class, "vehicle_tuning");
+        return $this->hasOne(vehicle_tuning::class, "vehicle_tuning_id", "vehicle_tuning_details");
     }
 
 }

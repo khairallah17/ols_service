@@ -17,7 +17,6 @@ use App\Models\engines;
 use App\Models\generations;
 use App\Models\vehicle_chart_data;
 use App\Models\vehicles_characteristics;
-use Illuminate\Http\RedirectResponse;
 
 class VehiclesController extends Controller
 {
@@ -64,25 +63,47 @@ class VehiclesController extends Controller
     {
         $categoryId = $request->get('category_id');
 
-        // Use the where method to filter by category_id
-        $vehicles = vehicles::where('category_id', $categoryId)->get();
+        $vehicles = vehicles::where('category_id', $categoryId)
+                        ->pluck("brand_id")
+                        ->unique();
+
+        $brands = brands::whereIn("brand_id", $vehicles)->get();
     
-        return response()->json($vehicles);
+        return response()->json($brands);
     }
 
     public function getVehicleDetails(Request $request) {
-        $vehicle = vehicles::where('vehicle_name', $request->vehicle_name)
-                    ->with(['brand', 'model', 'generation', 'engine', 'ecu', "data_chart", "vehicle_characteristics"])
-                    ->first();
+
+        $validated = $request->validate([
+            'category_id' => 'required',
+            'brand_id' => 'required',
+            'model_id' => 'required',
+            'generation_id' => 'required',
+            'engine_id' => 'required',
+            'ecu_id' => 'required',
+        ]);
     
-        // $characteristics = vehicles_characteristics::where('vehicle_characterisitc_vehicle', $vehicle->get("id"))
-        //                         ->with(["characteristics"])
-        //                         ->first();
+        $vehicle = vehicles::where('category_id', $validated['category_id'])
+            ->where('brand_id', $validated['brand_id'])
+            ->where('model_id', $validated['model_id'])
+            ->where('generation_id', $validated['generation_id'])
+            ->where('engine_id', $validated['engine_id'])
+            ->where('ecu_id', $validated['ecu_id'])
+            ->with(["brand","model","generation","engine","ecu","data_chart","vehicle_tuning","tuning"])
+            ->first();
 
-        // Log::message($vehicle);
+        $vehicle_characteristics = vehicles_characteristics::where("vehicle_characteristic_vehicle", $vehicle["id"])
+                                ->pluck("vehicle_characteristic_characteristic")
+                                ->unique();
 
+        $characteristics = characteristics::whereIn("characteristic_id", $vehicle_characteristics)->get();
+    
+        if (!$vehicle) {
+            return response()->json(['message' => 'No vehicle found with the specified criteria.'], 404);
+        }
+    
+        return response()->json([$vehicle,$characteristics]);
 
-        return response()->json($vehicle);
     }
 
     /**
@@ -194,9 +215,9 @@ class VehiclesController extends Controller
     }
 
     public function getBrandsByVehicle(Request $request)    {
-        $vehicleName = $request->get('vehicle_name');
+        $vehicleId = $request->get('vehicle_id');
 
-        $brands = vehicles::where('vehicle_name', $vehicleName)
+        $brands = vehicles::where('id', $vehicleId)
                         ->distinct()
                         ->pluck('brand_id');
 
@@ -210,8 +231,8 @@ class VehiclesController extends Controller
         $brandId = $request->get('brand_id');
 
         $models = vehicles::where('brand_id', $brandId)
-                        ->distinct()
-                        ->pluck('model_id');
+                        ->pluck('model_id')
+                        ->unique();
 
         $modelData = models::whereIn('model_id', $models)->get();
 
@@ -231,9 +252,15 @@ class VehiclesController extends Controller
     }
 
     public function getEnginesByGeneration(Request $request){
-        $generationId = $request->get('model_id');
+        $generationId = $request->get('generation_id');
+        $brand_id = $request->get("brand_id");
+        $category_id = $request->get("category_id");
+        $model_id = $request->get("model_id");
 
-        $engines = vehicles::where('model_id', $generationId)
+        $engines = vehicles::where('generation_id', $generationId)
+                        ->where('brand_id', $brand_id)
+                        ->where('category_id', $category_id)
+                        ->where("model_id", $model_id)
                         ->distinct()
                         ->pluck('engine_id');
 
@@ -244,8 +271,16 @@ class VehiclesController extends Controller
 
     public function getEcusByEngine(Request $request){
         $engineId = $request->get('engine_id');
+        $generationId = $request->get('generation_id');
+        $brand_id = $request->get("brand_id");
+        $category_id = $request->get("category_id");
+        $model_id = $request->get("model_id");
 
         $ecus = vehicles::where('engine_id', $engineId)
+                        ->where('generation_id', $generationId)
+                        ->where('brand_id', $brand_id)
+                        ->where('category_id', $category_id)
+                        ->where("model_id", $model_id)
                         ->distinct()
                         ->pluck('ecu_id');
 

@@ -1,8 +1,9 @@
 <?php
+namespace App\Models;
 
 use App\Models\models;
 
-class VehicleTuning extends models {
+class vehicle_tuning extends models {
 
     protected $primaryKey = "vehicle_tuning_id";
 
