@@ -282,7 +282,7 @@
                             $.ajax({
                                 url: "{{ route('vehicle.models') }}",
                                 type: 'GET',
-                                data: { brand_id: brandId},
+                                data: vehicle_details,
                                 success: function(response) {
                                     let options = '<option value="">Select Model</option>';
                                     response.forEach(function(model) {
@@ -448,9 +448,11 @@
 
                         let vehicleDetailsHtml = `
                             <h3 class="text-lg font-bold text-red-500">Vehicle Details</h3>
+                            <hr />
                             <p><strong>Name:</strong> ${vehicle.vehicle_name}</p>
                             <p><strong>Brand:</strong> ${vehicle.brand.brand_name}</p>
                             <p><strong>Model:</strong> ${vehicle.model.model_name}</p>
+                            <p><strong>Fuel:</strong> ${vehicle.vehicle_fuel}</p>
                             <p><strong>Generation:</strong> ${vehicle.generation.generation_name}</p>
                             <p><strong>Engine:</strong> ${vehicle.engine.engine_name}</p>
                             <p><strong>ECU:</strong> ${vehicle.ecu.ecu_name}</p>
@@ -503,7 +505,8 @@
                     function displayAdditionalOptions(options) {
 
                         let vehicleAdd = `
-                            <h3>Vehicle Addition Options</h3>
+                            <h3 class="text-lg font-bold text-red-500 mt-10">Vehicle Addition Options</h3>
+                            <hr />
                         `
 
                         options.forEach(function(op) {

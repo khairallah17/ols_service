@@ -229,8 +229,10 @@ class VehiclesController extends Controller
 
     public function getModelsByBrand(Request $request){
         $brandId = $request->get('brand_id');
+        $category_id = $request->get("category_id");
 
         $models = vehicles::where('brand_id', $brandId)
+                        ->where("category_id", $category_id)
                         ->pluck('model_id')
                         ->unique();
 
